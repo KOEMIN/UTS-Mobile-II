@@ -48,11 +48,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -65,27 +65,32 @@ android {
 }
 
 dependencies {
-    implementation("com.google.firebase:firebase-firestore-ktx:26.1.2")
-    implementation("androidx.compose.foundation:foundation:1.10.6")
-    val room_version = "2.8.4"
+    // 1. Compose BOM (Pusat kendali versi Compose)
+    val composeBom = platform("androidx.compose:compose-bom:2024.02.00") // Gunakan versi stabil
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
 
+    // 2. Room Database
+    val room_version = "2.6.1" // Gunakan versi stabil ini dulu
     implementation("androidx.room:room-runtime:$room_version")
-
-    // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
-    // See Add the KSP plugin to your project
+    implementation("androidx.room:room-ktx:$room_version") // WAJIB ADA buat Flow & Suspend
     ksp("androidx.room:room-compiler:$room_version")
-    implementation(platform("androidx.compose:compose-bom:2024.12.01"))
-    implementation("androidx.activity:activity-compose:1.9.3")
-    implementation("androidx.compose.material3:material3")
+
+    // 3. UI Libraries (Versi otomatis ikut BOM)
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.core:core-ktx:1.15.0")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.foundation:foundation")
+
+    // 4. Android Lifecycle & Activity
+    implementation("androidx.activity:activity-compose:1.9.3")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+    implementation("androidx.core:core-ktx:1.15.0")
 
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    // 5. Tooling & Testing
     debugImplementation("androidx.compose.ui:ui-tooling")
-
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
     testImplementation("junit:junit:4.13.2")
 }

@@ -1,46 +1,16 @@
-/*
- * Copyright (C) 2023 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.example.unscramble.ui
 
 import android.app.Activity
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.shapes
 import androidx.compose.material3.MaterialTheme.typography
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -60,7 +30,9 @@ import com.example.unscramble.R
 import com.example.unscramble.ui.theme.UnscrambleTheme
 
 @Composable
-fun GameScreen(gameViewModel: GameViewModel = viewModel()) {
+fun GameScreen(
+    gameViewModel: GameViewModel = viewModel(factory = GameViewModel.Factory))
+{
     val historyList by gameViewModel.historyUiState.collectAsState()
     val gameUiState by gameViewModel.uiState.collectAsState()
     val mediumPadding = dimensionResource(R.dimen.padding_medium)
@@ -68,24 +40,17 @@ fun GameScreen(gameViewModel: GameViewModel = viewModel()) {
     Column(
         modifier = Modifier
             .statusBarsPadding()
-            .verticalScroll(rememberScrollState())
             .safeDrawingPadding()
-            .padding(mediumPadding),
-        verticalArrangement = Arrangement.Center,
+            .padding(mediumPadding)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(mediumPadding),
         horizontalAlignment = Alignment.CenterHorizontally
-
-        LazyColumn{
-            items(historyList) { item ->
-                Text(text = "${item.word}")
-
-            }
-        }
     ) {
-
         Text(
             text = stringResource(R.string.app_name),
             style = typography.titleLarge,
         )
+
         GameLayout(
             onUserGuessChanged = { gameViewModel.updateUserGuess(it) },
             wordCount = gameUiState.currentWordCount,
@@ -96,38 +61,56 @@ fun GameScreen(gameViewModel: GameViewModel = viewModel()) {
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()
-                .padding(mediumPadding)
         )
+
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(mediumPadding),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(mediumPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Button(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = { gameViewModel.checkUserGuess() }
             ) {
-                Text(
-                    text = stringResource(R.string.submit),
-                    fontSize = 16.sp
-                )
+                Text(text = stringResource(R.string.submit), fontSize = 16.sp)
             }
 
             OutlinedButton(
                 onClick = { gameViewModel.skipWord() },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = stringResource(R.string.skip),
-                    fontSize = 16.sp
-                )
+                Text(text = stringResource(R.string.skip), fontSize = 16.sp)
             }
         }
 
-        GameStatus(score = gameUiState.score, modifier = Modifier.padding(20.dp))
+        GameStatus(score = gameUiState.score)
+
+        Text(
+            text = "Riwayat Jawaban Benar:",
+            style = typography.titleMedium,
+            modifier = Modifier.align(Alignment.Start)
+        )
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f), // Biar list-nya ngambil sisa space yang ada
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(historyList) { item ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceVariant)
+                ) {
+                    // Pastikan di Entity lo namanya 'answer'. Kalau 'word', ganti jadi item.word
+                    Text(
+                        text = " ${item.answer}",
+                        modifier = Modifier.padding(12.dp),
+                        style = typography.bodyLarge
+                    )
+                }
+            }
+        }
 
         if (gameUiState.isGameOver) {
             FinalScoreDialog(
@@ -140,15 +123,12 @@ fun GameScreen(gameViewModel: GameViewModel = viewModel()) {
 
 @Composable
 fun GameStatus(score: Int, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier
-    ) {
+    Card(modifier = modifier) {
         Text(
             text = stringResource(R.string.score, score),
             style = typography.headlineMedium,
             modifier = Modifier.padding(8.dp)
         )
-
     }
 }
 
@@ -204,27 +184,16 @@ fun GameLayout(
                 ),
                 onValueChange = onUserGuessChanged,
                 label = {
-                    if (isGuessWrong) {
-                        Text(stringResource(R.string.wrong_guess))
-                    } else {
-                        Text(stringResource(R.string.enter_your_word))
-                    }
+                    Text(if (isGuessWrong) stringResource(R.string.wrong_guess) else stringResource(R.string.enter_your_word))
                 },
                 isError = isGuessWrong,
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = { onKeyboardDone() }
-                )
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { onKeyboardDone() })
             )
         }
     }
 }
 
-/*
- * Creates and shows an AlertDialog with final score.
- */
 @Composable
 private fun FinalScoreDialog(
     score: Int,
@@ -232,22 +201,13 @@ private fun FinalScoreDialog(
     modifier: Modifier = Modifier
 ) {
     val activity = (LocalContext.current as Activity)
-
     AlertDialog(
-        onDismissRequest = {
-            // Dismiss the dialog when the user clicks outside the dialog or on the back
-            // button. If you want to disable that functionality, simply use an empty
-            // onCloseRequest.
-        },
+        onDismissRequest = {},
         title = { Text(text = stringResource(R.string.congratulations)) },
         text = { Text(text = stringResource(R.string.you_scored, score)) },
         modifier = modifier,
         dismissButton = {
-            TextButton(
-                onClick = {
-                    activity.finish()
-                }
-            ) {
+            TextButton(onClick = { activity.finish() }) {
                 Text(text = stringResource(R.string.exit))
             }
         },
@@ -257,12 +217,4 @@ private fun FinalScoreDialog(
             }
         }
     )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GameScreenPreview() {
-    UnscrambleTheme {
-        GameScreen()
-    }
 }

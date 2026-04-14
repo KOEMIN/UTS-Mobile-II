@@ -1,12 +1,13 @@
 package com.example.unscramble
 
+import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import com.example.unscramble.data.UserAnswer
 import kotlinx.coroutines.flow.Flow
 
-
+@Dao
 interface AnswerDao {
     @Insert
 

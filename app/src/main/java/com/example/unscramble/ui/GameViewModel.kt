@@ -16,12 +16,17 @@
 
 package com.example.unscramble.ui
 
+import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.unscramble.AnswerDao
+import com.example.unscramble.data.AppDatabase
 import com.example.unscramble.data.MAX_NO_OF_WORDS
 import com.example.unscramble.data.SCORE_INCREASE
 import com.example.unscramble.data.UserAnswer
@@ -61,6 +66,8 @@ class GameViewModel(private val AnswerDao: AnswerDao) : ViewModel() {
 
     init {
         resetGame()
+
+
     }
 
     /*
@@ -157,6 +164,16 @@ class GameViewModel(private val AnswerDao: AnswerDao) : ViewModel() {
         } else {
             usedWords.add(currentWord)
             shuffleCurrentWord(currentWord)
+        }
+    }
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as Application)
+                // Pastikan kamu punya cara buat ambil Database. Contoh:
+                val database = AppDatabase.getDatabase(application)
+                GameViewModel(database.answerDao())
+            }
         }
     }
 }
