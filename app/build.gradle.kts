@@ -66,6 +66,7 @@ android {
 
 dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx:26.1.2")
+    implementation("androidx.compose.foundation:foundation:1.10.6")
     val room_version = "2.8.4"
 
     implementation("androidx.room:room-runtime:$room_version")
